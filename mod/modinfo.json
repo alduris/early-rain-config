@@ -1,10 +1,17 @@
-﻿{
+{
   "id": "alduris.earlyrainconfig",
   "name": "Early Rain Config",
   "version": "1.0",
   "authors": "Alduris",
   "description": "Configurable setting for early rain in competitive mode",
-  "tags": [],
+  "tags": [
+    "Arenas",
+    "Game Modes",
+    "Tools",
+    "Base",
+    "Downpour",
+    "Watcher"
+  ],
   "requirements": [],
   "requirements_names": [],
   "checksum_override_version": true
