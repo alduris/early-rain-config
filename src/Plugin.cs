@@ -1,34 +1,46 @@
-﻿using BepInEx;
+﻿using System.Security.Permissions;
+using BepInEx;
 using BepInEx.Logging;
-using System.Security.Permissions;
+using Menu;
+using UnityEngine;
 
 // Allows access to private members
 #pragma warning disable CS0618
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618
 
-namespace TestMod;
-
-[BepInPlugin("com.author.testmod", "Test Mod", "0.1.0")]
-sealed class Plugin : BaseUnityPlugin
+namespace EarlyRainConfig
 {
-    public static new ManualLogSource Logger;
-    bool IsInit;
-
-    public void OnEnable()
+    [BepInPlugin("alduris.earlyrainconfig", "Early Rain Config", "1.0")]
+    internal sealed class Plugin : BaseUnityPlugin
     {
-        Logger = base.Logger;
-        On.RainWorld.OnModsInit += OnModsInit;
-    }
+        public new static ManualLogSource Logger;
 
-    private void OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
-    {
-        orig(self);
+        public void OnEnable()
+        {
+            Logger = base.Logger;
+            On.Menu.ArenaSettingsInterface.ctor += ArenaSettingsInterface_ctor;
+            On.ArenaSetup.GameTypeSetup.InitAsGameType += GameTypeSetup_InitAsGameType;
+        }
 
-        if (IsInit) return;
-        IsInit = true;
+        private static void GameTypeSetup_InitAsGameType(On.ArenaSetup.GameTypeSetup.orig_InitAsGameType orig, ArenaSetup.GameTypeSetup self, ArenaSetup.GameTypeID gameType)
+        {
+            bool rainWhenOnePlayerLeft = self.rainWhenOnePlayerLeft;
+            orig(self, gameType);
+            if (gameType == ArenaSetup.GameTypeID.Competitive)
+            {
+                self.rainWhenOnePlayerLeft = rainWhenOnePlayerLeft;
+            }
+        }
 
-        // Initialize assets, your mod config, and anything that uses RainWorld here
-        Logger.LogDebug("Hello world!");
+        private static void ArenaSettingsInterface_ctor(On.Menu.ArenaSettingsInterface.orig_ctor orig, Menu.ArenaSettingsInterface self, Menu.Menu menu, MenuObject owner)
+        {
+            orig(self, menu, owner);
+            if (self.GetGameTypeSetup.gameType == ArenaSetup.GameTypeID.Competitive)
+            {
+                self.earlyRainCheckbox = new CheckBox(menu, self, self, self.evilAICheckBox.pos + new Vector2(0f, 30f), ArenaSettingsInterface.GetEarlyRainCheckboxWidth(menu.CurrLang), menu.Translate("Early Rain:"), "EARLYRAIN", false);
+                self.subObjects.Add(self.earlyRainCheckbox);
+            }
+        }
     }
 }
